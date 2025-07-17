@@ -1,9 +1,0 @@
-EMAIL=
-SENHA=
-
-# URLs dos ambientes
-# Para ambiente de produção/staging
-# BASE_URL=https://school.proandre.com.br
-
-# Para ambiente de desenvolvimento local
-BASE_URL=http://localhost
