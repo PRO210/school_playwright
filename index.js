@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.js';
 import DashboardPage from './pages/DashboardPage.js';
 import AlunosPage from './pages/AlunosPage.js';
 import { readCsvFile } from './utils/readCsvFile.js';
+import { writeFile } from 'fs/promises';
 
 
 (async () => {
@@ -97,9 +98,12 @@ import { readCsvFile } from './utils/readCsvFile.js';
     for (let i = 0; i < totalAlunos; i++) {
       const record = alunosData[i];
       const nomeAluno = record.NomeDoAluno;
+      const nisAluno = record.NIS;
       const cpfAluno = record.CPF;
+      const inepAluno = record.INEP;
 
-      console.log(`\n[${i + 1}/${totalAlunos}] Processando aluno: ${nomeAluno}, CPF: ${cpfAluno}`);
+      console.log(`\n[${i + 1}/${totalAlunos}] Processando aluno: ${nomeAluno}, NIS: ${nisAluno} ,CPF: ${cpfAluno},
+         INEP: ${inepAluno}`);
 
       try {
         // Navega para a página de alunos e tenta buscar
@@ -128,19 +132,31 @@ import { readCsvFile } from './utils/readCsvFile.js';
 
 
         // --- FUNÇÃO PARA PREENCHER O CPF ---
-        if (cpfAluno) {
+        if (cpfAluno?.trim()) {
           await alunosPage.fillInputByName('CPF', cpfAluno);
         } else {
           console.log(`CPF não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento do CPF.`);
+        }
+        // --- FUNÇÃO PARA PREENCHER O INEP ---
+        if (inepAluno?.trim()) {
+          await alunosPage.fillInputByName('INEP', inepAluno);
+        } else {
+          console.log(`INEP não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento do INEP.`);
+        }
+        // --- FUNÇÃO PARA PREENCHER O NIS ---
+        if (nisAluno?.trim()) {
+          await alunosPage.fillInputByName('NIS', nisAluno);
+        } else {
+          console.log(`NIS não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento do NIS.`);
         }
 
         // --- E DEPOIS O CLIQUE NO BOTÃO SALVAR ---
         await alunosPage.clickSubmitButtonByText('Salvar'); // Salva todas as alterações feitas na página
         console.log(`Alterações salvas para o aluno: ${nomeAluno}`);
-        
+
         // Opcional: Adicionar à lista de sucesso se todo o fluxo de edição foi bem
         alunosProcessadosComSucesso.push(nomeAluno);
-        
+
         await alunosPage.confirmAlert()
         console.log(`Alert confirmado`);
 
@@ -151,6 +167,7 @@ import { readCsvFile } from './utils/readCsvFile.js';
         errosGeraisNoProcessamento.push({ aluno: nomeAluno, erro: innerError.message });
         // Ainda assim, continuamos para o próximo aluno, a menos que o erro seja irrecuperável.
       }
+      await page.waitForTimeout(3000);
     }
 
   } catch (outerError) {
@@ -169,7 +186,7 @@ import { readCsvFile } from './utils/readCsvFile.js';
       const naoEncontradosContent = `Alunos NÃO encontrados na lista:\n\n${alunosNaoEncontrados.join('\n')}\n`;
       const naoEncontradosFilePath = 'alunos_nao_encontrados.txt';
       try {
-        await fs.writeFile(naoEncontradosFilePath, naoEncontradosContent);
+        await writeFile(naoEncontradosFilePath, naoEncontradosContent);
         console.log(`Nomes dos alunos NÃO encontrados salvos em: ${naoEncontradosFilePath}`);
       } catch (writeErr) {
         console.error(`❌ Erro ao salvar arquivo de alunos não encontrados: ${writeErr.message}`);
@@ -184,7 +201,7 @@ import { readCsvFile } from './utils/readCsvFile.js';
         errosGeraisNoProcessamento.map(err => `Aluno: ${err.aluno}, Erro: ${err.erro}`).join('\n') + '\n';
       const errosFilePath = 'alunos_erros_processamento.txt';
       try {
-        await fs.writeFile(errosFilePath, errosContent);
+        await writeFile(errosFilePath, errosContent);
         console.log(`Detalhes dos erros de processamento salvos em: ${errosFilePath}`);
       } catch (writeErr) {
         console.error(`❌ Erro ao salvar arquivo de erros de processamento: ${writeErr.message}`);

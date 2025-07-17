@@ -94,14 +94,41 @@ export default class AlunosPage extends BasePage {
        * @param {string} value - O valor a ser preenchido no campo.
        */
     async fillInputByName(nameAttribute, value) {
-        // 🔹 Limpeza: apenas números
-        const processedValue = value.replace(/\D/g, '').slice(0, 11);
 
-        // 🔸 Validação: CPF deve ter exatamente 11 dígitos
-        if (!/^\d{11}$/.test(processedValue)) {
-            console.warn(`⚠️ CPF inválido para campo "${nameAttribute}": "${value}" → "${processedValue}".`);
-            return;
-        }
+        let processedValue = value;
+
+        if (nameAttribute === 'CPF') {
+            // 🔹 Limpeza: apenas números
+            let processedValue = value.replace(/\D/g, '').slice(0, 11);
+
+            // 🔸 Validação: CPF deve ter exatamente 11 dígitos
+            if (!/^\d{11}$/.test(processedValue)) {
+                console.warn(`⚠️ "${nameAttribute}" inválido para campo "${nameAttribute}": "${value}" → "${processedValue}".`);
+                return;
+            }
+        } 
+
+        if (nameAttribute === 'INEP') {
+            // 🔹 Limpeza: apenas números
+            let processedValue = value.replace(/\D/g, '').slice(0, 11);
+
+            // 🔸 Validação: INEP deve ter exatamente 11 dígitos
+            if (!/^\d{11}$/.test(processedValue)) {
+                console.warn(`⚠️ "${nameAttribute}" inválido para campo "${nameAttribute}": "${value}" → "${processedValue}".`);
+                return;
+            }
+        } 
+
+        if (nameAttribute === 'NIS') {
+            // 🔹 Limpeza: apenas números
+            let processedValue = value.replace(/\D/g, '').slice(0, 11);
+
+            // 🔸 Validação: NIS deve ter exatamente 11 dígitos
+            if (!/^\d{11}$/.test(processedValue)) {
+                console.warn(`⚠️ "${nameAttribute}" inválido para campo "${nameAttribute}": "${value}" → "${processedValue}".`);
+                return;
+            }
+        } 
 
         const locator = this.page.locator(`input[name="${nameAttribute}"], textarea[name="${nameAttribute}"]`);
 
@@ -118,7 +145,7 @@ export default class AlunosPage extends BasePage {
         await this.page.keyboard.press('Backspace');
 
         // ⌨️ Digita caractere por caractere (respeitando eventos JS como máscara ou validador)
-        console.log(`⌨️ Digitando CPF no campo "${nameAttribute}": ${processedValue}`);
+        console.log(`⌨️ Digitando no campo "${nameAttribute}": ${processedValue}`);
         await this.page.keyboard.type(processedValue, { delay: 100 }); // delay ajuda com máscaras
 
         // (opcional) dispara blur
