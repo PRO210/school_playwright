@@ -8,7 +8,6 @@ import AlunosPage from './pages/AlunosPage.js';
 import { readCsvFile } from './utils/readCsvFile.js';
 
 
-
 (async () => {
   const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext({
@@ -34,11 +33,9 @@ import { readCsvFile } from './utils/readCsvFile.js';
   const alunosPage = new AlunosPage(page, baseUrl);
 
 
-
   // --- Lógica de Autenticação Reutilizável ---
   let loggedIn = false;
   let authData = await loadAuthData();
-
 
   if (authData && authData.authCookie) {
     console.log('Tentando restaurar sessão com cookie existente...');
@@ -104,11 +101,13 @@ import { readCsvFile } from './utils/readCsvFile.js';
 
       console.log(`\n[${i + 1}/${totalAlunos}] Processando aluno: ${nomeAluno}, CPF: ${cpfAluno}`);
 
-
       try {
         // Navega para a página de alunos e tenta buscar
         await alunosPage.navigateToAlunosPage();
+        await page.waitForTimeout(2000);
+
         await alunosPage.searchAluno(nomeAluno);
+        await page.waitForTimeout(2000);
 
         const found = await alunosPage.isAlunoNameVisible(nomeAluno); // Retorna true/false
 
@@ -122,9 +121,13 @@ import { readCsvFile } from './utils/readCsvFile.js';
         // Se o aluno foi encontrado, continue com o fluxo normal de edição
         console.log(`Aluno "${nomeAluno}" encontrado. Prosseguindo com a edição.`);
         await alunosPage.clickAlunoActionDropdown(nomeAluno);
-        await alunosPage.clickAlterarCadastro();
+        await page.waitForTimeout(2000);
 
-        // --- AQUI VOCÊ USARÁ A NOVA FUNÇÃO PARA PREENCHER O CPF ---
+        await alunosPage.clickAlterarCadastro();
+        await page.waitForTimeout(2000);
+
+
+        // --- FUNÇÃO PARA PREENCHER O CPF ---
         if (cpfAluno) {
           await alunosPage.fillInputByName('CPF', cpfAluno);
         } else {
@@ -134,11 +137,12 @@ import { readCsvFile } from './utils/readCsvFile.js';
         // --- E DEPOIS O CLIQUE NO BOTÃO SALVAR ---
         await alunosPage.clickSubmitButtonByText('Salvar'); // Salva todas as alterações feitas na página
         console.log(`Alterações salvas para o aluno: ${nomeAluno}`);
-
+        
         // Opcional: Adicionar à lista de sucesso se todo o fluxo de edição foi bem
         alunosProcessadosComSucesso.push(nomeAluno);
-
-
+        
+        await alunosPage.confirmAlert()
+        console.log(`Alert confirmado`);
 
       } catch (innerError) {
         // Este catch pega erros DENTRO do processamento de um aluno específico,

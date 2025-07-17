@@ -20,7 +20,7 @@ export default class BasePage {
         console.log(`Navegando para: ${fullUrl}`); // Log para acompanhar
         await this.page.goto(fullUrl);
     }
-   
+
     /**
      * Clica em um elemento pelo texto.
      * @param {string} text - O texto do elemento.
@@ -52,7 +52,7 @@ export default class BasePage {
      * @param {number} ms - O tempo em milissegundos.
      */
     async waitForTimeout(ms) {
-        await this.page.waitForTimeout(ms); // Evitar sempre que possível, preferir awaits por elementos
+        await this.page.waitForTimeout(ms);
     }
 
     /**
@@ -63,10 +63,10 @@ export default class BasePage {
     async clickSubmitButtonByText(buttonText) {
         // Seletor para um botão <button type="submit"> que contém o texto especificado
         const locator = this.page.locator(`button[type="submit"]:has-text("${buttonText}")`);
-        
+
         // Espera o botão ficar visível
-        await locator.waitFor({ state: 'visible', timeout: 10000 }); 
-        
+        await locator.waitFor({ state: 'visible', timeout: 10000 });
+
         // --- ADICIONADO: Rola a página até o botão se necessário ---
         console.log(`Rolando a página até o botão "${buttonText}"...`);
         await locator.scrollIntoViewIfNeeded();
@@ -74,11 +74,20 @@ export default class BasePage {
 
         console.log(`Clicando no botão de envio: "${buttonText}"`);
         await locator.click();
-        
+
         // Opcional: Esperar a navegação ou um indicador de sucesso/falha
         await this.page.waitForLoadState('domcontentloaded'); // Espera a página carregar após o envio
         await this.waitForTimeout(1000); // Pequena espera para renderização
     }
+
+    async confirmAlert() {
+        this.page.once('dialog', async dialog => {
+            console.log(`📢 Modal detectado: "${dialog.message()}"`);
+            await dialog.accept(); // ou dialog.dismiss() se quiser cancelar
+        });
+        await this.page.click('button:has-text("SALVAR")');
+    }
+
 
 }
 

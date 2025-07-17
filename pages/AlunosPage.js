@@ -89,47 +89,43 @@ export default class AlunosPage extends BasePage {
     }
 
     /**
-       * Preenche um campo de input ou textarea pelo atributo 'name'.
-       * Rola a página até o campo e espera que ele esteja visível e editável.
-       * Considera campos com máscaras (como CPF).
+       * Preenche um campo de input ou textarea pelo atributo 'name'.    
        * @param {string} nameAttribute - O valor do atributo 'name' do input/textarea.
        * @param {string} value - O valor a ser preenchido no campo.
        */
     async fillInputByName(nameAttribute, value) {
-        let processedValue = value;
-        let isMaskedField = false; // Flag para campos com máscara
+        // 🔹 Limpeza: apenas números
+        const processedValue = value.replace(/\D/g, '').slice(0, 11);
 
-        // Lógica de validação e processamento para CPF
-        if (nameAttribute.toLowerCase() === 'cpf') {
-            processedValue = value.replace(/\D/g, '').slice(0, 11);
-            if (!/^\d{11}$/.test(processedValue)) {
-                console.warn(`⚠️ CPF inválido detectado para campo "${nameAttribute}": "${value}" → "${processedValue}". Não será preenchido.`);
-                return;
-            }
-            isMaskedField = true; // Definir como campo mascarado
+        // 🔸 Validação: CPF deve ter exatamente 11 dígitos
+        if (!/^\d{11}$/.test(processedValue)) {
+            console.warn(`⚠️ CPF inválido para campo "${nameAttribute}": "${value}" → "${processedValue}".`);
+            return;
         }
-        // Você pode adicionar outras verificações aqui para outros campos mascarados (ex: 'telefone', 'data')
 
-        const locator = this.page.locator(`input[name="${nameAttribute}"], textarea[name="${nameAttribute}"]`); // Mantive textarea também, por segurança.
+        const locator = this.page.locator(`input[name="${nameAttribute}"], textarea[name="${nameAttribute}"]`);
 
-        console.log(`Verificando e rolando até o campo "${nameAttribute}"...`);
+        console.log(`🔍 Procurando o campo "${nameAttribute}"...`);
         await locator.waitFor({ state: 'visible', timeout: 15000 });
         await locator.scrollIntoViewIfNeeded();
-        await locator.waitFor({ state: 'editable', timeout: 15000 });
+        // await locator.waitFor({ state: 'editable', timeout: 15000 });
 
-        // --- MUDANÇA PRINCIPAL AQUI ---
-        // Se for um campo com máscara, use .type() para simular digitação caractere por caractere.
-        // Caso contrário, use .fill() que é mais rápido.
-        if (isMaskedField) {
-            console.log(`Digitando no campo mascarado "${nameAttribute}" (caractere por caractere) com "${processedValue}"`);
-            await locator.type(processedValue, { delay: 100 }); // Adiciona um pequeno delay entre cada caractere
-            await this.waitForTimeout(500); // Pequena pausa para a máscara processar a digitação final
-        } else {
-            console.log(`Preenchendo campo "${nameAttribute}" com "${processedValue}"`);
-            await locator.fill(processedValue);
-        }
-        // --- FIM DA MUDANÇA ---
+        // 🖱️ Clica no campo para garantir foco
+        await locator.click();
+
+        // 🧹 Limpa qualquer conteúdo anterior
+        await this.page.keyboard.press('Control+A');
+        await this.page.keyboard.press('Backspace');
+
+        // ⌨️ Digita caractere por caractere (respeitando eventos JS como máscara ou validador)
+        console.log(`⌨️ Digitando CPF no campo "${nameAttribute}": ${processedValue}`);
+        await this.page.keyboard.type(processedValue, { delay: 100 }); // delay ajuda com máscaras
+
+        // (opcional) dispara blur
+        // await locator.evaluate(el => el.blur());
     }
+
+
 
 
     /**
