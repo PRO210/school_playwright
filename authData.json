@@ -1,3 +1,14 @@
 {
- 
+  "login": "proandre21@hotmail.com",
+  "senha": "19734693",
+  "authCookie": {
+    "name": "school_app_session",
+    "value": "eyJpdiI6IjlxYnZPRis3SDQzbWlvZjR6TWIrY0E9PSIsInZhbHVlIjoiUDVMcVNra3JYdmtndjlpbnFpWUFETnVoaFY4emM4WDd5K3pLaWxJVFd3RjB3dkRUSzViZS9LWkREeUIyTnlvSWNnbE54Z3ZjYU5Zc2JJM05oanltNXhMY2s3azduWENyU0hXTmlHYWtBd0JqNkZrOEhiM1JvditwbVo0VE51cWkiLCJtYWMiOiI0ZjM2MmFiNzVmMDdjYjc2NDc0YzAyNDUyZTY3NWVjNzE2NDY2NTE1YzQzOTgwNzUxOGQ2NTUyMmFkOWZkYjExIiwidGFnIjoiIn0%3D",
+    "domain": "localhost",
+    "path": "/",
+    "expires": 1752753159.616864,
+    "httpOnly": true,
+    "secure": false,
+    "sameSite": "Lax"
+  }
 }

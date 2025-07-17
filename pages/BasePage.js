@@ -1,17 +1,26 @@
 // pages/BasePage.js
+
 export default class BasePage {
-    constructor(page) {
+    constructor(page, baseURL) {
         this.page = page;
+        this.baseURL = baseURL;
     }
 
     /**
-     * Navega para a URL base + o caminho especificado.
-     * @param {string} path - O caminho a ser adicionado à URL base.
-     */
+      * Navega para a URL base + o caminho especificado.
+      * @param {string} path - O caminho a ser adicionado à URL base.
+      */
     async goto(path = '/') {
-        await this.page.goto(path);
-    }
+        // Se o 'path' já for uma URL completa, use-o.
+        // Caso contrário, construa a URL completa com this.baseURL.
+        const fullUrl = path.startsWith('http://') || path.startsWith('https://')
+            ? path
+            : `${this.baseURL}${path}`; // Use this.baseURL aqui
 
+        console.log(`Navegando para: ${fullUrl}`); // Log para acompanhar
+        await this.page.goto(fullUrl);
+    }
+   
     /**
      * Clica em um elemento pelo texto.
      * @param {string} text - O texto do elemento.
@@ -47,19 +56,29 @@ export default class BasePage {
     }
 
     /**
-     * Lida com o banner de cookies se ele aparecer.
+     * Clica em um botão de envio (submit) com um texto específico.
+     * Rola a página até o botão antes de clicar.
+     * @param {string} buttonText - O texto visível do botão.
      */
-    async handleCookieBanner() {
-        console.log('Verificando banner de cookies...');
-        const cookieBanner = await this.page.$('text=/cookies|aceitar|autorizar/i');
-        if (cookieBanner) {
-            console.log('Autorizando cookies...');
-            await cookieBanner.click();
-            await this.waitForTimeout(1000); // Pequena espera para a ação do clique
-            console.log('Cookies autorizados.');
-        } else {
-            console.log('Nenhum banner de cookies detectado.');
-        }
+    async clickSubmitButtonByText(buttonText) {
+        // Seletor para um botão <button type="submit"> que contém o texto especificado
+        const locator = this.page.locator(`button[type="submit"]:has-text("${buttonText}")`);
+        
+        // Espera o botão ficar visível
+        await locator.waitFor({ state: 'visible', timeout: 10000 }); 
+        
+        // --- ADICIONADO: Rola a página até o botão se necessário ---
+        console.log(`Rolando a página até o botão "${buttonText}"...`);
+        await locator.scrollIntoViewIfNeeded();
+        // --- FIM DA ADIÇÃO ---
+
+        console.log(`Clicando no botão de envio: "${buttonText}"`);
+        await locator.click();
+        
+        // Opcional: Esperar a navegação ou um indicador de sucesso/falha
+        await this.page.waitForLoadState('domcontentloaded'); // Espera a página carregar após o envio
+        await this.waitForTimeout(1000); // Pequena espera para renderização
     }
+
 }
 

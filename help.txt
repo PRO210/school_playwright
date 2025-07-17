@@ -1,2 +1,2 @@
 npm install dotenv
-npm install csv-parser
+npm install csv-parse

@@ -36,7 +36,6 @@ export default class LoginPage extends BasePage {
         // AQUI: Usamos a variável baseUrl.
         await this.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-        await this.handleCookieBanner();
 
         console.log('Aguardando o botão "Acessar o Sistema" ficar visível...');
         await this.initialAccessButton.waitFor({ state: 'visible' });
