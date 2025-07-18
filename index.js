@@ -83,142 +83,120 @@ import { writeFile } from 'fs/promises';
 
   const alunosData = await readCsvFile('./alunos.csv');
 
-  // --- NOVA LISTA PARA ARMAZENAR ALUNOS NÃO ENCONTRADOS ---
   const alunosNaoEncontrados = [];
   const alunosProcessadosComSucesso = [];
-  const errosGeraisNoProcessamento = []; // Para erros que não são de "aluno não encontrado"
+  const errosGeraisNoProcessamento = [];
 
-  try {
+  // Função para tentar processar um aluno específico
+  async function processarAluno(page, alunosPage, aluno) {
+    const { NomeDoAluno, NIS, CPF, INEP } = aluno;
+    try {
+      await alunosPage.navigateToAlunosPage();
+      await page.waitForTimeout(2000);
 
-    const totalAlunos = alunosData.length;
-    console.log(`Total de alunos a processar: ${totalAlunos}`);
+      await alunosPage.searchAluno(NomeDoAluno);
+      await page.waitForTimeout(2000);
+
+      const found = await alunosPage.isAlunoNameVisible(NomeDoAluno);
+
+      if (!found) {
+        console.warn(`⚠️ Aluno "${NomeDoAluno}" NÃO encontrado. Pulando para o próximo.`);
+        alunosNaoEncontrados.push(NomeDoAluno);
+        return false;
+      }
+
+      console.log(`Aluno "${NomeDoAluno}" encontrado. Prosseguindo com a edição.`);
+      await alunosPage.clickAlunoActionDropdown(NomeDoAluno);
+      await page.waitForTimeout(2000);
+
+      await alunosPage.clickAlterarCadastro();
+      await page.waitForTimeout(2000);
+
+      await preencherCampoIfExists(alunosPage, 'CPF', CPF, NomeDoAluno);
+      await preencherCampoIfExists(alunosPage, 'INEP', INEP, NomeDoAluno);
+      await preencherCampoIfExists(alunosPage, 'NIS', NIS, NomeDoAluno);
+
+      await alunosPage.clickSubmitButtonByText('Salvar');
+      alunosProcessadosComSucesso.push(NomeDoAluno);
+
+      await alunosPage.confirmAlert();
+      console.log(`Alterações salvas e alert confirmado para: ${NomeDoAluno}`);
+
+      return true;
+    } catch (err) {
+      console.error(`❌ Erro ao processar "${NomeDoAluno}":`, err.message);
+      errosGeraisNoProcessamento.push({ aluno: NomeDoAluno, erro: err.message });
+      return false;
+    }
+  }
+
+  async function preencherCampoIfExists(alunosPage, campo, valor, nomeAluno) {
+    if (valor?.trim()) {
+      await alunosPage.fillInputByName(campo, valor);
+    } else {
+      console.log(`${campo} não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento.`);
+    }
+  }
+
+  async function salvarResultadosEmArquivo(nomeArquivo, conteudo) {
+    try {
+      await writeFile(nomeArquivo, conteudo);
+      console.log(`Arquivo salvo: ${nomeArquivo}`);
+    } catch (err) {
+      console.error(`❌ Erro ao salvar ${nomeArquivo}: ${err.message}`);
+    }
+  }
+
+  async function processarTodosAlunos(page, alunosPage, alunosData) {
+    console.log(`Total de alunos a processar: ${alunosData.length}`);
     console.log(`Nomes carregados: ${alunosData.map(r => r.NomeDoAluno).join(', ')}`);
 
-    // --- LOOP PRINCIPAL DE PROCESSAMENTO DE ALUNOS ---
-    for (let i = 0; i < totalAlunos; i++) {
-      const record = alunosData[i];
-      const nomeAluno = record.NomeDoAluno;
-      const nisAluno = record.NIS;
-      const cpfAluno = record.CPF;
-      const inepAluno = record.INEP;
-
-      console.log(`\n[${i + 1}/${totalAlunos}] Processando aluno: ${nomeAluno}, NIS: ${nisAluno} ,CPF: ${cpfAluno},
-         INEP: ${inepAluno}`);
-
-      try {
-        // Navega para a página de alunos e tenta buscar
-        await alunosPage.navigateToAlunosPage();
-        await page.waitForTimeout(2000);
-
-        await alunosPage.searchAluno(nomeAluno);
-        await page.waitForTimeout(2000);
-
-        const found = await alunosPage.isAlunoNameVisible(nomeAluno); // Retorna true/false
-
-        if (!found) {
-          // Se o aluno NÃO for encontrado, adiciona à lista e PULA para o próximo.
-          console.warn(`⚠️ Aluno "${nomeAluno}" NÃO encontrado na lista após busca. Pulando para o próximo.`);
-          alunosNaoEncontrados.push(nomeAluno);
-          continue; // <-- Continua para a próxima iteração do loop
-        }
-
-        // Se o aluno foi encontrado, continue com o fluxo normal de edição
-        console.log(`Aluno "${nomeAluno}" encontrado. Prosseguindo com a edição.`);
-        await alunosPage.clickAlunoActionDropdown(nomeAluno);
-        await page.waitForTimeout(2000);
-
-        await alunosPage.clickAlterarCadastro();
-        await page.waitForTimeout(2000);
-
-
-        // --- FUNÇÃO PARA PREENCHER O CPF ---
-        if (cpfAluno?.trim()) {
-          await alunosPage.fillInputByName('CPF', cpfAluno);
-        } else {
-          console.log(`CPF não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento do CPF.`);
-        }
-        // --- FUNÇÃO PARA PREENCHER O INEP ---
-        if (inepAluno?.trim()) {
-          await alunosPage.fillInputByName('INEP', inepAluno);
-        } else {
-          console.log(`INEP não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento do INEP.`);
-        }
-        // --- FUNÇÃO PARA PREENCHER O NIS ---
-        if (nisAluno?.trim()) {
-          await alunosPage.fillInputByName('NIS', nisAluno);
-        } else {
-          console.log(`NIS não fornecido no CSV para o aluno ${nomeAluno}. Pulando o preenchimento do NIS.`);
-        }
-
-        // --- E DEPOIS O CLIQUE NO BOTÃO SALVAR ---
-        await alunosPage.clickSubmitButtonByText('Salvar'); // Salva todas as alterações feitas na página
-        console.log(`Alterações salvas para o aluno: ${nomeAluno}`);
-
-        // Opcional: Adicionar à lista de sucesso se todo o fluxo de edição foi bem
-        alunosProcessadosComSucesso.push(nomeAluno);
-
-        await alunosPage.confirmAlert()
-        console.log(`Alert confirmado`);
-
-      } catch (innerError) {
-        // Este catch pega erros DENTRO do processamento de um aluno específico,
-        // que não sejam apenas "aluno não encontrado" (como um clique que falhou após encontrar o aluno).
-        console.error(`❌ Erro ao processar aluno "${nomeAluno}":`, innerError.message);
-        errosGeraisNoProcessamento.push({ aluno: nomeAluno, erro: innerError.message });
-        // Ainda assim, continuamos para o próximo aluno, a menos que o erro seja irrecuperável.
-      }
+    for (const aluno of alunosData) {
+      await processarAluno(page, alunosPage, aluno);
       await page.waitForTimeout(3000);
     }
+  }
 
-  } catch (outerError) {
-    // Este catch pega erros na leitura do CSV ou na inicialização do loop.
-    console.error('❌ Erro na automação geral (leitura do CSV ou loop principal):', outerError);
-
-  } finally {
-    // --- RESULTADOS FINAIS ---
+  async function resumoFinal(alunosData) {
     console.log('\n--- Resumo do Processamento ---');
     console.log(`Total de alunos no CSV: ${alunosData.length}`);
     console.log(`Alunos processados com sucesso: ${alunosProcessadosComSucesso.length}`);
     console.log(`Alunos não encontrados na lista: ${alunosNaoEncontrados.length}`);
 
-    // --- SALVAR ALUNOS NÃO ENCONTRADOS EM ARQUIVO ---
     if (alunosNaoEncontrados.length > 0) {
-      const naoEncontradosContent = `Alunos NÃO encontrados na lista:\n\n${alunosNaoEncontrados.join('\n')}\n`;
-      const naoEncontradosFilePath = 'alunos_nao_encontrados.txt';
-      try {
-        await writeFile(naoEncontradosFilePath, naoEncontradosContent);
-        console.log(`Nomes dos alunos NÃO encontrados salvos em: ${naoEncontradosFilePath}`);
-      } catch (writeErr) {
-        console.error(`❌ Erro ao salvar arquivo de alunos não encontrados: ${writeErr.message}`);
-      }
+      await salvarResultadosEmArquivo(
+        'alunos_nao_encontrados.txt',
+        `Alunos NÃO encontrados na lista:\n\n${alunosNaoEncontrados.join('\n')}\n`
+      );
     } else {
       console.log('Todos os alunos do CSV foram encontrados na lista.');
     }
 
-    // --- SALVAR ERROS GERAIS NO PROCESSAMENTO EM ARQUIVO ---
     if (errosGeraisNoProcessamento.length > 0) {
-      const errosContent = 'Erros detalhados no processamento de alunos:\n\n' +
-        errosGeraisNoProcessamento.map(err => `Aluno: ${err.aluno}, Erro: ${err.erro}`).join('\n') + '\n';
-      const errosFilePath = 'alunos_erros_processamento.txt';
-      try {
-        await writeFile(errosFilePath, errosContent);
-        console.log(`Detalhes dos erros de processamento salvos em: ${errosFilePath}`);
-      } catch (writeErr) {
-        console.error(`❌ Erro ao salvar arquivo de erros de processamento: ${writeErr.message}`);
-      }
+      await salvarResultadosEmArquivo(
+        'alunos_erros_processamento.txt',
+        'Erros detalhados:\n\n' +
+        errosGeraisNoProcessamento.map(
+          err => `Aluno: ${err.aluno}, Erro: ${err.erro}`
+        ).join('\n') + '\n'
+      );
     } else {
       console.log('Nenhum erro de processamento específico de aluno foi registrado.');
     }
-
-    console.log('------------------------------');
-    console.log('Processo concluído!');
-    // await browser.close();
-    await page.pause();
   }
 
+  // USO PRINCIPAL
+  async function editarAlunosCsv(page, alunosPage, alunosData) {
+    try {
+      await processarTodosAlunos(page, alunosPage, alunosData);
+    } catch (outerError) {
+      console.error('❌ Erro na automação geral:', outerError);
+    } finally {
+      await resumoFinal(alunosData);
+    }
+  }
 
-
-
+  editarAlunosCsv(page, alunosPage, alunosData);
 
 
 

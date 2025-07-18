@@ -153,8 +153,6 @@ export default class AlunosPage extends BasePage {
     }
 
 
-
-
     /**
      * Realiza o fluxo completo de busca e acesso à edição de um aluno.
      * @param {string} alunoNome - O nome do aluno a ser encontrado e editado.
