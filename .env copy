@@ -1,0 +1,7 @@
+EMAIL=
+SENHA=
+# URLs dos ambientes
+# Para ambiente de produção/staging
+# BASE_URL=
+# Para ambiente de desenvolvimento local
+BASE_URL=http://localhost
