@@ -17,22 +17,14 @@ import readCsvFile from './utils/readCsvFile.js';
  * A classe depende de uma instância de `page` do Playwright e de um objeto `alunosPage` que segue o padrão Page Object Model (POM),
  * contendo os métodos necessários para interação com a interface da aplicação de alunos.
  * 
- * @example
- * import GerenciadorAlunosCsv from './GerenciadorAlunosCsv.js';
- * import AlunosPage from './pages/AlunosPage.js';
- * 
- * const browser = await chromium.launch();
- * const page = await browser.newPage();
- * const alunosPage = new AlunosPage(page);
- * 
- * const gerenciador = new GerenciadorAlunosCsv(page, alunosPage, './dados/alunos.csv');
- * await gerenciador.executar();
- * 
+
  * @typedef {object} AlunoCSV
  * @property {string} NomeDoAluno - Nome completo do aluno
  * @property {string} [NIS] - Número do NIS (opcional)
  * @property {string} [CPF] - Número do CPF (opcional)
  * @property {string} [INEP] - Código INEP (opcional)
+ * @property {string} [MAE] - Código MAE (opcional)
+ * @property {string} [PAI] - Código PAI (opcional)
  */
 export default class GerenciadorAlunosCsv {
   /**
@@ -75,7 +67,8 @@ export default class GerenciadorAlunosCsv {
   }
 
   async processarAluno(aluno) {
-    const { NomeDoAluno, NIS, CPF, INEP } = aluno;
+    // const { NomeDoAluno, NIS, CPF, INEP, MAE, PAI } = aluno;
+    const { NomeDoAluno, MAE, PAI } = aluno;
 
     try {
       await this.alunosPage.navigateToAlunosPage();
@@ -87,7 +80,7 @@ export default class GerenciadorAlunosCsv {
       const found = await this.alunosPage.isAlunoNameVisible(NomeDoAluno);
 
       if (!found) {
-        console.warn(`⚠️ Aluno "${NomeDoAluno}" NÃO encontrado. Pulando.`);
+        console.warn(`⚠️ Aluno "${NomeDoAluno}" NÃO encontrado. Pulando. . .`);
         this.alunosNaoEncontrados.push(NomeDoAluno);
         return;
       }
@@ -99,11 +92,17 @@ export default class GerenciadorAlunosCsv {
       await this.alunosPage.clickAlterarCadastro();
       await this.page.waitForTimeout(2000);
 
-      const camposParaPreencher = [
-        ['CPF', CPF],
-        ['INEP', INEP],
-        ['NIS', NIS]
+      const camposParaPreencher = [     
+        ['MAE', MAE],
+        ['PAI', PAI]
       ];
+      // const camposParaPreencher = [
+      //   ['CPF', CPF],
+      //   ['INEP', INEP],
+      //   ['NIS', NIS],
+      //   ['MAE', MAE],
+      //   ['PAI', PAI]
+      // ];
 
       for (const [campo, valor] of camposParaPreencher) {
         await this.preencherCampoIfExists(campo, valor, NomeDoAluno);

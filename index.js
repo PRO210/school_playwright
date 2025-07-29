@@ -1,12 +1,11 @@
 // index.js (ou main.js, app.js)
 import 'dotenv/config';
 import { chromium } from 'playwright';
-import { saveAuthData, loadAuthData } from './utils/authUtils.js'; // Adicione .js
+import { saveAuthData, loadAuthData } from './utils/authUtils.js';
+
 import LoginPage from './pages/LoginPage.js';
 import DashboardPage from './pages/DashboardPage.js';
 import AlunosPage from './pages/AlunosPage.js';
-// import { readCsvFile } from './utils/readCsvFile.js';
-// import { writeFile } from 'fs/promises';
 import GerenciadorAlunosCsv from './GerenciadorAlunosCsv.js'
 
 

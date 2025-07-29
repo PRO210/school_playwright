@@ -3,10 +3,10 @@
   "senha": "19734693",
   "authCookie": {
     "name": "school_app_session",
-    "value": "eyJpdiI6IldvbE01TndWenFZR3Z1NGwzQnMwUFE9PSIsInZhbHVlIjoiekFGK2JYL3NWejRlcUVFaW9scHQ2TTdwRVByeDhDWkkraUg3eUhkZmxuYVRMemd0R1hWSG43MEY5bkZsRkFianlqbUYzNVZjVFlyV2dsU3ZtMDUwZWkvS1JZQ1Zycy90amxtUnorQW5uMkNYcW82cDI2SDdoVHYxK0RxU1RLM04iLCJtYWMiOiIyYmJlMDI1Yjk4ZmE2ZGFlNDA0MWM2YzIwMDRmZWQwNTEyNTg2MGM0YTJjM2NmMjUxNWZhOTZjOTkzOTM0OTcxIiwidGFnIjoiIn0%3D",
+    "value": "eyJpdiI6Ikk1amREd3RmMUY3RFNpWEdFR1hCbkE9PSIsInZhbHVlIjoienpxMnlGQlA0UDZJVDUzM3VOS2l1YWpXd25QWkFTMHBkVU9CQVJwcEt1ekxuNmdIdXBhZGdwVjQ5KzlvbDVQbDN2NkQwbzFpRE9TMWd3dzdNd1k1RVdkZnBlUHpBRU8vN1ZWOHp0eFFBNG1scGszTGtBTjZoNzZXdzJwc2plc20iLCJtYWMiOiI1NzUyMTNlODcwMjI3YTJhOWYzOGVhZGYzZWFiNjRkZTUwM2U5MGQ1MGU3ZWIxYzExMjhiN2NkMjY0YzRmMGUxIiwidGFnIjoiIn0%3D",
     "domain": "localhost",
     "path": "/",
-    "expires": 1752862523.582059,
+    "expires": 1753800506.078227,
     "httpOnly": true,
     "secure": false,
     "sameSite": "Lax"

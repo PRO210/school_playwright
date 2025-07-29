@@ -1,3 +1,3 @@
 Erros:
 
-Aluno: ANA ELOYSA BATISTA FERREIRA, Erro: page.waitForTimeout: Target page, context or browser has been closed
+Aluno: HENRIQUE VINICIUS NUNES DE AZEVEDO, Erro: page.waitForTimeout: Target page, context or browser has been closed
